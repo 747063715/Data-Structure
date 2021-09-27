@@ -1,0 +1,290 @@
+#include <iostream>
+#include <string>
+using namespace std;
+#define ERROR 0
+#define OK 1
+static int u=0;
+            //书的数目
+typedef struct
+{
+ string no;
+ string name;
+ float price;
+}book;
+typedef struct LNode        //结点类
+{
+    int i;                  //结点数
+    book data;              //结点数据域
+    struct LNode *next;     //结点指针域
+}LNode,*linklist;           //结点类，指向结点类的指针
+linklist creatnode()        //结点类创建的数据处理,即创建结点类的数据域
+{
+    linklist p=new LNode;
+    p->i=++u;               //对书的数目和顺序进行计数
+    cout<<"please input book's ISBN:";
+    cin>>p->data.no;
+    cout<<" name:";
+    cin>>p->data.name;
+    cout<<" price:";
+    cin>>p->data.price;
+    cout<<endl;
+    p->next=NULL;
+    return p;
+}
+void creatlist(linklist &L,int n) //后插法创建元素为n的单链表
+{
+    L=new LNode;
+    L->i=0;
+    L->next=NULL;
+    linklist r=L;
+    linklist p;
+    for(int i=0;i<n;++i)
+    {
+        p = creatnode();
+        r->next=p;
+        p->next=NULL;
+        r=p;
+    }
+    if(p==NULL)
+        cout<<"failed to creat";
+}
+int getbookn(linklist L,string n,linklist &e)   //按ISBN值进行查找
+{
+    linklist p=L;
+    do  {
+        p=p->next;
+        if(!p) return ERROR;
+        }  while(p->data.no!=n);
+    e=p;
+    return OK;
+}
+int getbook(linklist L,int num,linklist &e)        //按序数查找图书,直接返回一个判断值，间接返回一个linklist值
+{
+    int j=0;
+    linklist p=L;
+    for(j=0;p&&j<num;p=p->next,j++);
+    e=p;
+    if(!p||j>num) return ERROR;
+    return OK;
+}
+int getbook(linklist L,string n,linklist &e)             //按书名查找（e——查找结果）
+{
+    linklist p=L;
+    while(p->data.name!=n&&p)
+        {
+        p=p->next;
+        if(!p) return ERROR;
+        }
+    e=p;
+    return OK;
+}
+int Search(linklist L,linklist &e)    //表头参数和返回的书指针参数(即查找结果）
+{
+        char choice;
+        string name,ISBN;
+        int num;
+        int judge;                    //判断是否找到
+        cout<<endl<<"please choose a way to search for the book:"<<endl<<"a.the number of the book  b.name  c.ISBN  d.first";
+        cout<<endl;
+        cin>>choice;
+        switch(choice)
+        {
+        case 'a':
+            cout<<"please input the book's number"<<endl;
+            cin>>num;
+            judge=getbook(L,num,e);
+            break;
+        case 'b':
+            cout<<"please input the book's name:"<<endl;
+            cin>>name;
+            judge=getbook(L,name,e);
+            break;
+        case 'c':
+            cout<<"please input the book's ISBN:"<<endl;
+            cin>>ISBN;
+            judge=getbookn(L,ISBN,e);
+            break;
+        case 'd':
+            judge=1;
+            e=L;            break;
+        default:
+            cout<<"your input is illegal!"<<endl; return 0;
+        }
+       return judge;                         //1-找到，0-没找到
+}
+void ListInsert(linklist &p,linklist a)                  //在p结点后插入结点a
+{
+    a->i=p->i+1;
+    a->next=p->next;
+    p->next=a;
+    for(;a->i<=u;a->i++)
+        a=a->next;
+    u++;
+}
+int ListDelete(linklist &L,linklist &p)            //输入表头和须删除的结点的指针
+{
+    int n=p->i;
+    linklist e,q=p;                                //存储前一结点的指针e及保存该结点的地址以备释放的指针q
+    int x=getbook(L,n-1,e);
+    if(!x)
+    {
+        cout<<"failed to search";
+        return 0;
+    }
+    e->next=p->next;
+    delete q;
+    u--;
+    for(e=e->next;e;e=e->next)
+        e->i--;
+    return OK;
+}
+void alter(linklist &p)                                             //修改p所指向结点的数据域
+{
+    int i=0;
+    char a;
+    do{
+    cout<<"which data do you want to alter:"<<"   A.ISBN B.name C.price   ";
+    cin>>a;
+    cout<<endl;
+    switch(a){
+    case'A':
+        cout<<"please input the new ISBN:   ";
+        cin>>p->data.no;
+        i++;
+        break;
+    case'B':
+        cout<<"please input the new name:   ";
+        cin>>p->data.name;
+        i++;
+        break;
+    case'C':
+        cout<<"please input the new price:   ";
+        cin>>p->data.price;
+        i++;
+        break;
+    default:
+        cout<<"your input is illegal,please input again!"<<endl;
+    }
+    if(i>0)
+       {
+           cout<<"do you have another data to alter?"<<"  0.yes 1.no  ";
+           cin>>i;
+       }
+    } while(!i);
+}
+void order(linklist &L,int n)                        //冒泡排序法将图书按价格从小到大顺序排序
+{
+    linklist a,b,c;
+    for(int j=0;j<n-1;j++)
+    {
+        a=L;
+        b=L->next;
+        c=L->next->next;
+        for(int i=0;i<n-1;i++)
+        {
+            if(b->data.price>c->data.price)
+            {
+                b->next=c->next;
+                c->next=b;
+                a->next=c;
+                b->i++;
+                c->i--;
+            }
+            a=a->next;
+            b=a->next;
+            c=a->next->next;
+
+        }
+    }
+}
+void showbook(linklist b)
+{
+    cout<<"book's name:"<<b->data.name<<endl<<"  book's ISBN:"<<b->data.no<<endl<<"  book's price:"<<b->data.price<<endl<<"  book's locate:"<<b->i<<endl
+    <<endl;
+}
+void showAll(linklist L,int u)
+{
+    for(int i=0;L&&i<u;i++)
+    {
+        L=L->next;
+        showbook(L);
+    }
+}
+int main()
+{
+    int judge=0;                                      //judge表判断
+    int choice;
+    linklist L;                                      //表头
+    linklist e;                                      //指向书的指针
+    linklist in;
+    int n;                                           //创建时书的数目
+    cout<<"welcome to the system of books'managing!"<<endl<<endl<<endl;
+    cout<<"First how many books do you want to put into this system?    ";
+    cin>>n;
+    cout<<"Now you need to put in the books you want to manage:  "<<endl;
+    creatlist(L,n);                                   //n为书的数目，L为系统的链表
+    for(;judge>=0;)                                   //无限循环结构
+    {
+    cout<<"do you want to continue using this system?"<<endl<<"1-yes  0-no"<<endl;
+    cin>>judge;
+      if(judge==0)   return 0;                        //唯一出口
+    for(int i=0;i<1;)                                 //i用于switch语句中的错误输入处理
+    {
+        cout<<endl<<endl<<"please put in what more operation you want to do?"<<endl<<"1.search for a book."<<"   2.add a book"
+        <<"   3.delete a book"<<"   4.change a book's information"<<"   5.show all books"<<"   6.order"<<endl;
+        cin>>choice;
+        switch(choice){
+        case 1:
+            judge=Search(L,e);
+            if(judge)
+                showbook(e);
+            else
+                {
+                    cout<<"don't find."<<endl<<"please choose your selectoion again(in number)"<<endl;
+                    break;
+                }
+            i++;
+            break;
+        case 2:
+            cout<<"please select which book you want to insert bihind"<<endl;
+            judge=Search(L,e);
+            if(!judge)  {cout<<"don't find it"<<endl<<"please choose your selection again(in number)"<<endl; break;}
+            cout<<endl<<"please input new book's name:";
+            in=new LNode;
+            cin>>in->data.name;
+            cout<<"  ISBN:";
+            cin>>in->data.no;
+            cout<<"  price:";
+            cin>>in->data.price;
+            ListInsert(e,in);
+            i++;
+            break;
+        case 3:
+            cout<<"which book do you want to delete"<<endl;
+            judge=Search(L,e);
+            if(!judge){cout<<"don't find it"<<endl<<"please choose your selection again!"<<endl; break;}
+            ListDelete(L,e);
+            i++;
+            break;
+        case 4:
+            cout<<"which book do you want to alter(answer in book's number)"<<endl;
+            judge=Search(L,e);
+            if(!judge){cout<<"don't find it"<<endl<<"please choose your selection again"<<endl; break;}
+            alter(e);
+            i++;
+            break;
+        case 5:
+            showAll(L,u);
+            i++;
+            break;
+        case 6:
+            order(L,u);
+            break;
+        default:   cout<<endl<<"your input is illegal,please input again.(in number)"<<endl; break;
+
+        }
+
+    }
+    }
+}
+
