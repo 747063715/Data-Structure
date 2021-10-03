@@ -1,0 +1,206 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <iomanip>
+using namespace std;
+
+#define MAXSIZE 10000
+#define OK true
+#define ERROR false
+#define Status bool
+
+//定义构造数据类型
+typedef struct
+{
+    char no[20];
+    char name[50];
+    float price;
+}Book;
+//定义顺序表
+typedef struct 
+{
+    Book *book;
+    int length;
+}SqList;
+//初始化顺序表
+Status InitList(SqList &L)
+{
+    L.book = new Book[MAXSIZE];
+    if(!L.book) exit(false);
+    L.length = 0;
+    return OK;
+}
+//取出顺序表中的图书的信息
+Status GetElem(SqList &L, Book &e, int i)
+{
+    if(i<1 || i>L.length) return false;
+    e = L.book[i-1];
+    return OK;
+
+}
+//插入
+Status InsertSqList(SqList &L, int i, Book e)
+{
+	//是否超出线性表的区间范围
+	if (i<1||i>L.length+1)
+	{
+		return false;
+	}
+	//当前元素超过线性表长度则无法插入
+	if (L.length==MAXSIZE)
+	{
+		return false;
+    }
+
+	//
+	for (int j = L.length-1; j>=i-1; j--)
+	{
+		L.book[j + 1] = L.book[j];
+	}
+	L.book[i - 1] = e;
+	++L.length;
+	return 1;
+}
+//按书名查找
+int LocateElem(SqList L, const char* nam)
+{
+    for (int i = 0; i < L.length; i++)
+        if (strcmp(L.book[i].name, nam) == 0)
+            return i + 1;
+    return 0;
+}
+
+//删除
+Status ListDelete(SqList &L, int i)
+{
+    if(i<1 || i >L.length) return false;
+    for(int j = i; j <= L.length;j++)
+        L.book[j-1]=L.book[j];
+    --L.length;
+    return true;
+    
+}
+//打印
+void ShowList(SqList &L)
+{
+    for(int i=0;i<L.length;i++)
+    {
+        cout << left << setw(15) << L.book[i].no << "\t" << left
+             << setw(50) << L.book[i].name << "\t" << left
+             << setw(5) << L.book[i].price << endl;
+        cout << endl;
+    }
+}
+int main()
+{
+    cout<<"欢迎来到图书管理系统!"<<endl;
+    string head_1, head_2, head_3;
+    int i = 0,temp,choose;
+    SqList L;
+    InitList(L);
+    cout<<"顺序表初始化成功!"<<endl;
+    cout<<"正在录入图书信息："<<endl;
+    cout<<"-------------------------"<<endl;
+    //从文件录入图书的信息
+    fstream file;
+    file.open("D:\\Desktop\\Experiment\\book.txt");
+    if (!file)
+    {
+        cout << "错误！未找到文件！" << endl;
+        exit(ERROR);
+    }
+    file >> head_1 >> head_2 >> head_3;
+    while (!file.eof())
+    {
+        file >> L.book[i].no >> L.book[i].name >> L.book[i].price;
+        i++;
+    }
+    cout << "输入 book.txt 信息完毕\n\n";
+    L.length = i;
+    file.close();
+    cout<<"图书信息录入完成!"<<endl;
+    cout<<"---------------------------"<<endl;
+    ShowList(L);
+    cout<<"请选择需要的功能："<<endl;
+    cout<< "**********************************"<<endl;
+    cout<< "******    图书管理系统        *****"<<endl;
+    cout<< "**********************************"<<endl;
+    cout<<"0-------------结束程序--------------"<<endl;
+    cout<<"1-------------打印图书--------------"<<endl;
+    cout<<"2-------------插入图书--------------"<<endl;
+    cout<<"3-------------删除图书--------------"<<endl;
+    cout<<"4-------------查找图书--------------"<<endl;
+    cout<<"***********************************"<<endl;
+    //死循环
+    choose = -1;
+    while(choose!=0)
+    {
+        cin >> choose;
+        switch (choose)
+        {
+        case 0:
+        {
+            break;
+        }
+        case 1:
+        {
+            ShowList(L);
+            break;
+        }
+        case 2:
+        {
+            cout << "输入需要插入图书的位置：" << endl;
+            int position;
+            cin >> position;
+            cout << "请输入插入图书的ISBN，书名，价格：" << endl;
+            Book X;
+            cin >> X.no;
+            cin >> X.name;
+            cin >> X.price;
+            if (InsertSqList(L, position, X))
+            {
+                cout << "插入成功!" << endl;
+                ShowList(L);
+            }
+            else
+                cout << "插入失败!" << endl;
+            break;
+        }
+        case 3:
+        {
+            cout << "输入需要删除图书的位置：" << endl;
+            int Num;
+            cin >> Num;
+            if (ListDelete(L, Num))
+            {
+                cout << "删除成功!" << endl;
+                ShowList(L);
+            }
+            else
+                cout << "删除失败!" << endl;
+            break;
+        }
+        case 4:
+        {
+            cout << "请输入需要查找图书的书名：" << endl;
+            char name[MAXSIZE];
+            cin >> name;
+            temp = LocateElem(L, name);
+            if (temp != 0)
+            {
+                cout << "查找成功\n";
+                cout << "该价格对应的ISBN：" << L.book[temp - 1].no << " "
+                     << "该价格对应的书名为：" << L.book[temp - 1].price << endl
+                     << endl;
+            }
+            else
+                cout << "查找失败！没有这个价格对应的书籍\n\n";
+            break;
+        }
+        }
+    }
+    cout<<"-----------------------------"<<endl;
+    cout<<"感谢使用本系统，欢迎下次再见!"<<endl;
+    return 0;
+}
